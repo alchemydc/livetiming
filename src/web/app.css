@@ -1,1 +1,125 @@
 @import "tailwindcss";
+@import "@fontsource-variable/archivo/wdth.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Palette is drawn from the PCA Rocky Mountain Region roundel and the autocross lot.
+   Light mode is tuned for phones read in direct sun: pure white paper, navy ink. */
+:root {
+  --paper: #ffffff;
+  --ink: #0e2a47; /* roundel outline navy */
+  --ink-2: #4a5d70; /* secondary text, 6.8:1 on paper */
+  --rule: #d5dde5;
+  --sky: #1667a8; /* roundel disc blue, darkened for AA text */
+  --aspen: #f2b01e; /* aspen leaf gold: means "you", nothing else */
+  --aspen-wash: #fff3d1;
+  --cone: #e85d10; /* cone glyphs */
+  --cone-ink: #b8400c; /* cone-count text, AA on paper */
+  --hatch: rgb(14 42 71 / 0.09);
+  --panel: #ffffff; /* door number panels stay white, as on the car */
+  --panel-ink: #000000;
+  --panel-edge: #0e2a47;
+  color-scheme: light;
+}
+
+.dark {
+  --paper: #0b1d31;
+  --ink: #eef3f8;
+  --ink-2: #a3b5c7;
+  --rule: #223a54;
+  --sky: #74b9ee;
+  --aspen-wash: #1c3552; /* lifted navy; the gold panel and edge carry "you" */
+  --cone-ink: #ff8f4d;
+  --hatch: rgb(238 243 248 / 0.08);
+  --panel-edge: transparent;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: "Archivo Variable", system-ui, sans-serif;
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-rule: var(--rule);
+  --color-sky: var(--sky);
+  --color-aspen: var(--aspen);
+  --color-aspen-wash: var(--aspen-wash);
+  --color-cone: var(--cone);
+  --color-cone-ink: var(--cone-ink);
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+:focus-visible {
+  outline: 3px solid var(--sky);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Times always line up digit-for-digit. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Width is the type system's expressive axis: condensed for dense names,
+   expanded and heavy for car numbers and the hero time. */
+.w-condensed {
+  font-stretch: 82%;
+}
+.w-expanded {
+  font-stretch: 118%;
+}
+
+/* Signature: car numbers as door number panels. */
+.num-panel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5em;
+  height: 1.75em;
+  padding: 0 0.35em;
+  border-radius: 0.55em;
+  background: var(--panel);
+  color: var(--panel-ink);
+  box-shadow: inset 0 0 0 2px var(--panel-edge);
+  font-stretch: 118%;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.num-panel[data-me] {
+  background: var(--aspen);
+  box-shadow: none;
+}
+
+/* Pending runs: penalties can still change, shown as a provisional hatch. */
+.pending {
+  background-image: repeating-linear-gradient(135deg, transparent 0 7px, var(--hatch) 7px 10px);
+}
+
+/* The one motion moment: rows for runs that just arrived flash gold once. */
+@keyframes arrive {
+  from {
+    background-color: color-mix(in srgb, var(--aspen) 35%, transparent);
+  }
+}
+.fresh {
+  animation: arrive 1.6s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fresh {
+    animation: none;
+  }
+}

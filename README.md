@@ -35,6 +35,7 @@ bun run simulate       # optional: plays runs into dev/event.axdb the way Visual
 bun test               # unit, server, SSE fan-out and writer-contention tests
 bun run typecheck
 bun run build          # out/livetiming, a single linux-x64 binary with the web app embedded
+bun run screenshots    # every page at phone and desktop width, light and dark, plus an axe scan (out/screens)
 ```
 
 Never commit a real event database. Real `.axdb` files contain drivers' names, emails, and phone numbers. Tests and development use synthetic fixtures from `scripts/make-fixture.ts`.

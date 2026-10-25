@@ -2,10 +2,12 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "node:url";
+import pkg from "./package.json" with { type: "json" };
 
 export default defineConfig({
   root: "src/web",
   plugins: [react(), tailwindcss()],
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src/web", import.meta.url)),
