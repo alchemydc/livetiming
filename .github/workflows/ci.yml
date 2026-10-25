@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - run: bun scripts/build.ts --no-compile
+      - run: bun run typecheck
+      - run: bun test
+      - run: bun run build
+      - uses: actions/upload-artifact@v5
+        with:
+          name: livetiming-linux-x64
+          path: |
+            out/livetiming
+            deploy/livetiming.service
+            deploy/DEPLOY.md
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: livetiming-linux-x64
+      - run: gh release create "$GITHUB_REF_NAME" out/livetiming deploy/livetiming.service deploy/DEPLOY.md --repo "$GITHUB_REPOSITORY" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}

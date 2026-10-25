@@ -1,0 +1,29 @@
+[Unit]
+Description=livetiming - live autocross results from VisualAX
+After=network.target
+
+[Service]
+# Run as a user that can read the .axdb (see DEPLOY.md, "Permissions").
+User=livetiming
+Group=livetiming
+ExecStart=/usr/local/bin/livetiming --db /var/www/html/VisualAX/dbSymLink.axdb --port 8080
+Restart=always
+RestartSec=2
+
+# Phase 2 of the cutover (Apache stopped): change --port to 80 and uncomment.
+#AmbientCapabilities=CAP_NET_BIND_SERVICE
+#CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+ReadOnlyPaths=/
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,7 @@
+node_modules/
+dist/
+out/
+src/server/generated/
+*.axdb
+!test/fixtures/*.axdb
+dev/
