@@ -2,13 +2,31 @@
 
 The event site has no internet. Everything below is done with a single file, `livetiming`, carried over on a USB stick.
 
+livetiming replaces the old PHP web UI and serves phones on port 80, the standard web port, so drivers just open `http://<nuc-address>/`.
+
 ## Get the binary (while online)
 
-Download `livetiming` from the latest GitHub release, or build it yourself with `bun install && bun run build` (output: `out/livetiming`). Copy it to the USB stick.
+Download `livetiming` from the latest GitHub release, or build it yourself with `bun install && bun run build` (output: `out/livetiming`). Copy it and `deploy/livetiming.service` to the USB stick.
 
 The binary targets `linux-x64-baseline`, so it runs on older CPUs without AVX2. It needs no Node, Bun, PHP or Apache on the NUC.
 
 ## First install
+
+### 1. Stop the old PHP web UI
+
+The old UI runs in Apache, which also listens on port 80, so it has to stop before livetiming can start.
+
+```sh
+sudo systemctl disable --now apache2   # stop it now and on every boot
+sudo systemctl mask apache2            # keep anything (e.g. a package upgrade) from starting it again
+sudo ss -ltnp 'sport = :80'            # no output means port 80 is free
+```
+
+**Do not delete `/var/www/html/VisualAX`.** VisualAX writes `dbSymLink.axdb` there every time it loads an event, and livetiming reads the event through that link.
+
+Leave the old PHP files in that directory and the `apache2` and `php` packages installed. Masking Apache is enough to keep it off, and keeping them is what lets you [go back to the PHP UI](#going-back-to-the-php-ui) without reinstalling anything. Once you no longer need that fallback, you can remove the packages and the PHP files, but keep the directory and the link.
+
+### 2. Install livetiming
 
 ```sh
 sudo useradd --system --no-create-home --shell /usr/sbin/nologin livetiming
@@ -18,7 +36,25 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now livetiming
 ```
 
-Then open `http://<nuc-address>:8080/` from a phone on the event Wi-Fi.
+Then give the `livetiming` user read access to the event database (see [Permissions](#permissions)).
+
+### 3. Check it from a phone
+
+Open `http://<nuc-address>/` from a phone on the event Wi-Fi.
+
+## Port 80 without root
+
+Ports below 1024 normally need root. livetiming doesn't run as root: the service runs as the unprivileged `livetiming` user, and systemd grants it one capability, `CAP_NET_BIND_SERVICE`, which allows binding port 80 and nothing else (see `AmbientCapabilities` in `livetiming.service`). It can't write anywhere on the system either.
+
+If livetiming won't start, check whether something else holds port 80:
+
+```sh
+journalctl -u livetiming -n 20     # look for a line starting "livetiming:"
+sudo ss -ltnp 'sport = :80'        # shows the process holding the port
+```
+
+- `livetiming: port 80 is already in use` means another program holds the port. Usually it's Apache still running: go back to step 1.
+- `livetiming: not allowed to listen on port 80` means the capability lines are missing from the installed `livetiming.service`. Reinstall the unit from the USB stick.
 
 ## Permissions
 
@@ -34,6 +70,7 @@ The usual way is a shared group, for example:
 sudo usermod -aG <visualax-user-group> livetiming
 chmod g+rx <event-db-directory>
 chmod g+r <event-db-directory>/*.axdb
+sudo systemctl restart livetiming   # picks up the new group membership
 ```
 
 livetiming only ever opens the database read-only.
@@ -41,7 +78,7 @@ livetiming only ever opens the database read-only.
 Check the result with:
 
 ```sh
-curl -s localhost:8080/api/health
+curl -s localhost/api/health
 ```
 
 - `"error": null` means it is reading the event.
@@ -66,10 +103,17 @@ sudo systemctl restart livetiming
 
 Phones keep working through a restart: they reconnect on their own and only refetch if the results changed.
 
-## Cutover from the PHP UI
+## Going back to the PHP UI
 
-1. **Side by side.** Leave Apache serving the old UI on port 80 and run livetiming on 8080 for an event or two.
-2. **Swap.** Run `sudo systemctl disable --now apache2`. In `/etc/systemd/system/livetiming.service`, change `--port 8080` to `--port 80` and uncomment the two `CAP_NET_BIND_SERVICE` lines. Then run `sudo systemctl daemon-reload && sudo systemctl restart livetiming`.
+If livetiming can't be used at an event, the old UI can take port 80 back. This needs no reinstall as long as the PHP files and the `apache2` and `php` packages were kept, as step 1 of First install says:
+
+```sh
+sudo systemctl disable --now livetiming
+sudo systemctl unmask apache2
+sudo systemctl enable --now apache2
+```
+
+To return to livetiming afterwards, run step 1 of First install again, then `sudo systemctl enable --now livetiming`.
 
 ## Logs
 

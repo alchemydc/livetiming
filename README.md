@@ -17,7 +17,7 @@ Scoring follows VisualAX: raw time is `(finish_tick - start_tick) / 1000`, and e
 
 ## Deploying
 
-See [deploy/DEPLOY.md](deploy/DEPLOY.md). In short: copy `livetiming` and `livetiming.service` to the NUC, install them, and point phones at port 8080.
+See [deploy/DEPLOY.md](deploy/DEPLOY.md). In short: stop the old PHP UI, copy `livetiming` and `livetiming.service` to the NUC, install them, and point phones at `http://<nuc-address>/`.
 
 ## Developing
 
@@ -32,7 +32,7 @@ bun run simulate       # optional: plays runs into dev/event.axdb the way Visual
 ```
 
 ```sh
-bun test               # unit, server, SSE fan-out and writer-contention tests
+bun run test           # builds the web app, then runs unit, server, startup, SSE fan-out and writer-contention tests
 bun run typecheck
 bun run build          # out/livetiming, a single linux-x64 binary with the web app embedded
 bun run screenshots    # every page at phone and desktop width, light and dark, plus an axe scan (out/screens)
