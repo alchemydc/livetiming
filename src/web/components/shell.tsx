@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { CircleUserRound, ListOrdered, Menu, Moon, Sun, Trophy, UsersRound } from "lucide-react";
 import logo from "../../../branding/logo.png";
 import { useSnapshot } from "@/lib/snapshot";
@@ -51,18 +51,20 @@ function Header() {
   );
 }
 
+// Active by exact path, so "/" (Pick car) doesn't match every page, and the
+// More tab also covers the pages listed under it.
 function Tab({ to, icon: Icon, label, also = [] }: { to: string; icon: typeof Trophy; label: string; also?: string[] }) {
   const { pathname } = useLocation();
+  const active = pathname === to || also.includes(pathname);
   return (
-    <NavLink
+    <Link
       to={to}
-      className={({ isActive }) =>
-        `flex flex-col items-center gap-0.5 border-t-[3px] pt-1.5 pb-1 text-[12px] font-semibold ${isActive || also.includes(pathname) ? "border-ink text-ink" : "border-transparent text-ink-2"}`
-      }
+      aria-current={active ? "page" : undefined}
+      className={`flex flex-col items-center gap-0.5 border-t-[3px] pt-1.5 pb-1 text-[12px] font-semibold ${active ? "border-ink text-ink" : "border-transparent text-ink-2"}`}
     >
       <Icon size={22} strokeWidth={2.2} aria-hidden="true" />
       {label}
-    </NavLink>
+    </Link>
   );
 }
 

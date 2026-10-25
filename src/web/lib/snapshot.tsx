@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { EventSnapshot, SnapRun } from "@shared/types";
+import { coalesce } from "./coalesce";
 import { getMe, setMe as storeMe } from "./storage";
 
 export type Connection = "connecting" | "live" | "reconnecting";
@@ -33,32 +34,32 @@ export function SnapshotProvider({ children }: { children: ReactNode }) {
   const [freshRunIds, setFresh] = useState<ReadonlySet<number>>(new Set());
   const [meId, setMeId] = useState<number | null>(null);
   const current = useRef<EventSnapshot | null>(null);
-  const inflight = useRef(false);
 
   // The browser revalidates with the ETag, so an unchanged snapshot costs a 304.
-  const load = useCallback(async () => {
-    if (inflight.current) return;
-    inflight.current = true;
-    try {
-      const res = await fetch("/api/snapshot", { cache: "no-cache" });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(body.error ?? `HTTP_${res.status}`);
-        return;
-      }
-      const next = (await res.json()) as EventSnapshot;
-      if (next.version === current.current?.version) return;
-      setFresh(changedRuns(current.current, next));
-      if (next.eventKey !== current.current?.eventKey) setMeId(getMe(next.eventKey));
-      current.current = next;
-      setSnap(next);
-      setError(null);
-    } catch {
-      setError("UNREACHABLE");
-    } finally {
-      inflight.current = false;
-    }
-  }, []);
+  // An update announced mid-fetch queues one more fetch rather than being dropped.
+  const load = useMemo(
+    () =>
+      coalesce(async () => {
+        try {
+          const res = await fetch("/api/snapshot", { cache: "no-cache" });
+          if (!res.ok) {
+            const body = (await res.json().catch(() => ({}))) as { error?: string };
+            setError(body.error ?? `HTTP_${res.status}`);
+            return;
+          }
+          const next = (await res.json()) as EventSnapshot;
+          if (next.version === current.current?.version) return;
+          setFresh(changedRuns(current.current, next));
+          if (next.eventKey !== current.current?.eventKey) setMeId(getMe(next.eventKey));
+          current.current = next;
+          setSnap(next);
+          setError(null);
+        } catch {
+          setError("UNREACHABLE");
+        }
+      }),
+    [],
+  );
 
   useEffect(() => {
     load();

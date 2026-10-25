@@ -35,7 +35,9 @@ try {
   const pending = [...snap.runs].reverse().find((r) => r.status === 2);
   const meId = pending?.driverId ?? snap.drivers[0]!.id;
 
-  const routes = process.argv.slice(2).length ? process.argv.slice(2) : ["/", "/me", "/overall"];
+  const other = snap.drivers.find((d) => d.id !== meId)!.id;
+  const allRoutes = ["/", "/me", "/class", "/overall", "/friends", "/last", "/reruns", `/driver/${other}`, "/more", "/status"];
+  const routes = process.argv.slice(2).length ? process.argv.slice(2) : allRoutes;
   const viewports = [
     { name: "phone", width: 390, height: 844 },
     { name: "desktop", width: 1280, height: 900 },
@@ -58,7 +60,7 @@ try {
       for (const route of routes) {
         await page.goto(base + route, { waitUntil: "networkidle" });
         await page.evaluate(() => document.fonts.ready);
-        const file = `${route === "/" ? "picker" : route.slice(1).replaceAll("/", "-")}-${vp.name}-${theme}.png`;
+        const file = `${route === "/" ? "picker" : route.slice(1).replace(/^driver\/\d+$/, "driver")}-${vp.name}-${theme}.png`;
         await page.screenshot({ path: join(outDir, file) });
         const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
         for (const v of axe.violations) {
