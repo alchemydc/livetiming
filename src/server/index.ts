@@ -8,7 +8,7 @@ const USAGE = "usage: livetiming [--db PATH] [--port N] [--host ADDR]";
 // Startup failures are printed as one plain line for the journal, instead of
 // an uncaught exception dumping minified source from the compiled binary.
 function fail(message: string): never {
-  console.error(`livetiming: ${message}`);
+  console.error(`livetiming: ${message.replace(/\s*\n\s*/g, " ")}`);
   process.exit(1);
 }
 
@@ -22,11 +22,11 @@ try {
     },
   }).values as typeof args;
 } catch (e) {
-  fail(`${(e as Error).message}\n${USAGE}`);
+  fail(`${(e as Error).message} (${USAGE})`);
 }
 
 const port = Number(args.port);
-if (!Number.isInteger(port) || port < 1 || port > 65535) fail(`--port must be a number from 1 to 65535, got "${args.port}"\n${USAGE}`);
+if (!Number.isInteger(port) || port < 1 || port > 65535) fail(`--port must be a number from 1 to 65535, got "${args.port}" (${USAGE})`);
 
 const hub = new Hub();
 const source = new SnapshotSource(args.db, (snap) => hub.publish(snap.version));

@@ -32,7 +32,7 @@ bun run simulate       # optional: plays runs into dev/event.axdb the way Visual
 ```
 
 ```sh
-bun test               # unit, server, SSE fan-out and writer-contention tests
+bun run test           # builds the web app, then runs unit, server, startup, SSE fan-out and writer-contention tests
 bun run typecheck
 bun run build          # out/livetiming, a single linux-x64 binary with the web app embedded
 bun run screenshots    # every page at phone and desktop width, light and dark, plus an axe scan (out/screens)

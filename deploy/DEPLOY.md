@@ -22,9 +22,9 @@ sudo systemctl mask apache2            # keep anything (e.g. a package upgrade) 
 sudo ss -ltnp 'sport = :80'            # no output means port 80 is free
 ```
 
-**Do not delete `/var/www/html/VisualAX`.** VisualAX writes `dbSymLink.axdb` there every time it loads an event, and livetiming reads the event through that link. The old PHP files in that directory can stay or go, but the directory and the link must stay.
+**Do not delete `/var/www/html/VisualAX`.** VisualAX writes `dbSymLink.axdb` there every time it loads an event, and livetiming reads the event through that link.
 
-Removing the `apache2` and `php` packages is optional. Masking the service is enough, and `apt remove` leaves `/var/www/html/VisualAX` alone if you do remove them.
+Leave the old PHP files in that directory and the `apache2` and `php` packages installed. Masking Apache is enough to keep it off, and keeping them is what lets you [go back to the PHP UI](#going-back-to-the-php-ui) without reinstalling anything. Once you no longer need that fallback, you can remove the packages and the PHP files, but keep the directory and the link.
 
 ### 2. Install livetiming
 
@@ -105,7 +105,7 @@ Phones keep working through a restart: they reconnect on their own and only refe
 
 ## Going back to the PHP UI
 
-If livetiming can't be used at an event, the old UI can take port 80 back. Its files and the database link were left in place, so this needs no reinstall:
+If livetiming can't be used at an event, the old UI can take port 80 back. This needs no reinstall as long as the PHP files and the `apache2` and `php` packages were kept, as step 1 of First install says:
 
 ```sh
 sudo systemctl disable --now livetiming

@@ -12,7 +12,7 @@
     "simulate": "bun scripts/simulate-writer.ts dev/event.axdb",
     "build": "bun scripts/build.ts",
     "typecheck": "tsc --noEmit",
-    "test": "bun test",
+    "test": "bun scripts/build.ts --no-compile && bun test",
     "screenshots": "bun scripts/build.ts --no-compile && bun scripts/screenshots.ts"
   },
   "dependencies": {
