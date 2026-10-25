@@ -6,13 +6,13 @@ After=network.target
 # Run as a user that can read the .axdb (see DEPLOY.md, "Permissions").
 User=livetiming
 Group=livetiming
-ExecStart=/usr/local/bin/livetiming --db /var/www/html/VisualAX/dbSymLink.axdb --port 8080
+ExecStart=/usr/local/bin/livetiming --db /var/www/html/VisualAX/dbSymLink.axdb --port 80
 Restart=always
 RestartSec=2
 
-# Phase 2 of the cutover (Apache stopped): change --port to 80 and uncomment.
-#AmbientCapabilities=CAP_NET_BIND_SERVICE
-#CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+# Lets the unprivileged user bind port 80; it is the only capability the service holds.
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 
 NoNewPrivileges=yes
 ProtectSystem=strict

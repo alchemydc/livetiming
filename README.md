@@ -17,7 +17,7 @@ Scoring follows VisualAX: raw time is `(finish_tick - start_tick) / 1000`, and e
 
 ## Deploying
 
-See [deploy/DEPLOY.md](deploy/DEPLOY.md). In short: copy `livetiming` and `livetiming.service` to the NUC, install them, and point phones at port 8080.
+See [deploy/DEPLOY.md](deploy/DEPLOY.md). In short: stop the old PHP UI, copy `livetiming` and `livetiming.service` to the NUC, install them, and point phones at `http://<nuc-address>/`.
 
 ## Developing
 
