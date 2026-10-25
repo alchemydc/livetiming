@@ -49,11 +49,12 @@ Ports below 1024 normally need root. livetiming doesn't run as root: the service
 If livetiming won't start, check whether something else holds port 80:
 
 ```sh
-journalctl -u livetiming -n 20     # look for an "address in use" or permission error
+journalctl -u livetiming -n 20     # look for a line starting "livetiming:"
 sudo ss -ltnp 'sport = :80'        # shows the process holding the port
 ```
 
-Usually that process is Apache still running: go back to step 1.
+- `livetiming: port 80 is already in use` means another program holds the port. Usually it's Apache still running: go back to step 1.
+- `livetiming: not allowed to listen on port 80` means the capability lines are missing from the installed `livetiming.service`. Reinstall the unit from the USB stick.
 
 ## Permissions
 
